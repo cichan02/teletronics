@@ -184,3 +184,7 @@ buildNumber.properties
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/git,java,maven,intellij+all,linux,visualstudiocode
+
+### Project ###
+*.env
+docker-compose.yml

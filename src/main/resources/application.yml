@@ -1,0 +1,46 @@
+server:
+  port: 8080
+  shutdown: graceful
+  servlet:
+    context-path: /api/v1/teletronics
+
+spring:
+  application:
+    name: @pom.name@
+  profiles:
+    active: @spring.profiles.active@
+    default: release
+
+logging:
+  file:
+    path: logs
+    name: ${logging.file.path}/${spring.application.name}.log
+
+---
+#Dev environment
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: dev.env[.properties]
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true
+    path: /api-docs
+
+---
+#Release environment
+spring:
+  config:
+    activate:
+      on-profile: release
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
