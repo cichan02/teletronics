@@ -1,6 +1,7 @@
 package by.piskunou.teletronics.api.controller;
 
 import by.piskunou.teletronics.api.mapper.FileMetadataMapper;
+import by.piskunou.teletronics.api.to.request.FileUploadRequest;
 import by.piskunou.teletronics.api.to.request.FilenameUpdateRequest;
 import by.piskunou.teletronics.api.to.response.FileMetadataResponse;
 import by.piskunou.teletronics.api.to.response.collection.PageResponse;
@@ -8,7 +9,6 @@ import by.piskunou.teletronics.core.domain.FileMetadata;
 import by.piskunou.teletronics.core.domain.User;
 import by.piskunou.teletronics.core.domain.enumeration.SortBy;
 import by.piskunou.teletronics.core.service.FileService;
-import by.piskunou.teletronics.api.to.request.FileUploadRequest;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

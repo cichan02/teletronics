@@ -1,7 +1,9 @@
 package by.piskunou.teletronics.core.domain;
 
 import by.piskunou.teletronics.core.domain.enumeration.Visibility;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -23,31 +25,21 @@ public final class FileMetadata {
 
     @Id
     private final UUID id;
-
-    @Indexed
-    private String basename;
-
     private final Visibility visibility;
-
     @Indexed
     private final UUID userId;
-
-    private String fileExtension;
-
     @Indexed
     private final String contentType;
-
     @Indexed
     private final Long fileSize;
-
     private final String fileHash;
-
     private final String storagePath;
-
     private final Set<String> tags;
-
     @Indexed
     private final Instant uploadDate;
+    @Indexed
+    private String basename;
+    private String fileExtension;
 
     public boolean isSentinelBasename() {
         return SENTINEL_BASENAME.equals(this.basename);

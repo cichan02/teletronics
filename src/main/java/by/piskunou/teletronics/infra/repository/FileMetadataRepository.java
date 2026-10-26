@@ -18,16 +18,16 @@ public interface FileMetadataRepository extends MongoRepository<FileMetadata, St
 
     @Query("{ 'visibility': ?0, 'tags': { $regex: ?1, $options: 'i' } }")
     Page<FileMetadata> findByVisibilityAndTagsContainingIgnoreCase(
-        Visibility visibility,
-        String tag,
-        Pageable pageable
+            Visibility visibility,
+            String tag,
+            Pageable pageable
     );
 
     @Query("{ 'userId': ?0, 'tags': { $regex: ?1, $options: 'i' } }")
     Page<FileMetadata> findByUserIdAndTagsContainingIgnoreCase(
-        String userId,
-        String tag,
-        Pageable pageable
+            String userId,
+            String tag,
+            Pageable pageable
     );
 
     boolean existsByUserIdAndFileHash(UUID userId, String fileHash);
