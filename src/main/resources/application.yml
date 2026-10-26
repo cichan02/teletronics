@@ -1,5 +1,4 @@
 server:
-  port: 8080
   shutdown: graceful
   servlet:
     context-path: /api/v1/teletronics
@@ -10,6 +9,28 @@ spring:
   profiles:
     active: @spring.profiles.active@
     default: release
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: -1
+      max-request-size: -1
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}
+      auto-index-creation: true
+
+file:
+  storage:
+    location: ./uploads
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,shutdown
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   file:
@@ -18,6 +39,9 @@ logging:
 
 ---
 #Dev environment
+server:
+  port: 0
+
 spring:
   config:
     activate:
@@ -34,6 +58,9 @@ springdoc:
 
 ---
 #Release environment
+server:
+  port: ${APP_PORT}
+
 spring:
   config:
     activate:
