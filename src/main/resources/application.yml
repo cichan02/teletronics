@@ -59,7 +59,7 @@ springdoc:
 ---
 #Release environment
 server:
-  port: ${APP_PORT}
+  port: 56789
 
 spring:
   config:

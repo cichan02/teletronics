@@ -1,49 +1,37 @@
-# Multi-stage build for optimized image size
-FROM eclipse-temurin:21-jdk-alpine AS build
-
-# Set working directory
-WORKDIR /app
-
-# Copy Maven wrapper and pom.xml
+# syntax=docker/dockerfile:1
+FROM eclipse-temurin:25-jdk-jammy as deps
+WORKDIR /build
+COPY --chmod=0755 mvnw mvnw
 COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+RUN --mount=type=bind,source=pom.xml,target=pom.xml \
+    --mount=type=cache,target=/root/.m2 ./mvnw dependency:go-offline -DskipTests
 
-# Download dependencies (cached layer)
-RUN ./mvnw dependency:go-offline
+FROM deps as package
+WORKDIR /build
+COPY ./src src/
+RUN --mount=type=bind,source=pom.xml,target=pom.xml \
+    --mount=type=cache,target=/root/.m2 \
+    ./mvnw package -DskipTests && \
+    mv target/$(./mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout)-$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout).jar target/app.jar
 
-# Copy source code
-COPY src ./src
+FROM package as extract
+WORKDIR /build
+RUN java -Djarmode=layertools -jar target/app.jar extract --destination target/extracted
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
-
-# Runtime stage
-FROM eclipse-temurin:21-jre-alpine
-
-# Create non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
-
-# Set working directory
-WORKDIR /app
-
-# Copy JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Create uploads directory
-RUN mkdir -p /app/uploads && chown -R spring:spring /app
-
-# Switch to non-root user
-USER spring:spring
-
-# Set memory limits via JVM options (1GB container limit, ~800MB for JVM)
-ENV JAVA_OPTS="-Xmx768m -Xms256m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
-
-# Expose port
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
-
-# Run the application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+FROM eclipse-temurin:25-jre-jammy AS prod
+ARG UID=10001
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    appuser
+USER appuser
+COPY --from=extract build/target/extracted/dependencies/ ./
+COPY --from=extract build/target/extracted/spring-boot-loader/ ./
+COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
+COPY --from=extract build/target/extracted/application/ ./
+EXPOSE 56789
+ENTRYPOINT [ "java", "-Dspring.profiles.active=postgres", "org.springframework.boot.loader.launch.JarLauncher" ]

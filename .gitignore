@@ -187,4 +187,8 @@ buildNumber.properties
 
 ### Project ###
 *.env
+*.iml
+logs/
+*.log
+uploads/
 docker-compose.yml
