@@ -10,11 +10,11 @@ import java.util.UUID;
 public record FileMetadataResponse(
         UUID id,
         String filename,
-        Long fileSize,
-        String contentType,
         Visibility visibility,
-        Instant uploadDate,
+        String contentType,
+        Long fileSize,
         Set<String> tags,
+        Instant uploadDate,
         URI downloadLink
 ) {
 

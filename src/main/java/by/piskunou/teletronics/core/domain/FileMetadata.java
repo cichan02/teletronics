@@ -4,11 +4,14 @@ import by.piskunou.teletronics.core.domain.enumeration.Visibility;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -19,27 +22,38 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@FieldNameConstants
 public final class FileMetadata {
     public static final String SENTINEL_BASENAME = "Replace me!";
     public static final String SENTINEL_CONTENT_TYPE = "Detect me!";
 
     @Id
     private final UUID id;
-    private final Visibility visibility;
-    @Indexed
-    private final UUID userId;
-    @Indexed
-    private final String contentType;
-    @Indexed
-    private final Long fileSize;
-    private final String fileHash;
-    private final String storagePath;
-    private final Set<String> tags;
-    @Indexed
-    private final Instant uploadDate;
+
     @Indexed
     private String basename;
+
     private String fileExtension;
+
+    private final Visibility visibility;
+
+    @Indexed
+    private final UUID userId;
+
+    @Indexed
+    private final String contentType;
+
+    @Indexed
+    private final Long fileSize;
+
+    private final String fileHash;
+
+    private final String storagePath;
+
+    private final Set<String> tags;
+
+    @Indexed
+    private final Instant uploadDate;
 
     public boolean isSentinelBasename() {
         return SENTINEL_BASENAME.equals(this.basename);
@@ -47,5 +61,27 @@ public final class FileMetadata {
 
     public boolean isSentinelContentType() {
         return SENTINEL_CONTENT_TYPE.equals(this.contentType);
+    }
+
+    public boolean isPublic() {
+        return Visibility.PUBLIC.equals(this.visibility);
+    }
+
+    public boolean isPrivate() {
+        return Visibility.PRIVATE.equals(this.visibility);
+    }
+
+    public String filename() {
+        return basename + "." + fileExtension;
+    }
+
+    //TODO: check correct current context path
+    public URI downloadLink() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/files")
+                .path(this.id.toString())
+                .path("/download")
+                .build()
+                .toUri();
     }
 }

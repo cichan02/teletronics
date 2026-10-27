@@ -8,13 +8,14 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface FileMetadataRepository extends MongoRepository<FileMetadata, String> {
-    Page<FileMetadata> findByVisibility(Visibility visibility, Pageable pageable);
+public interface FileMetadataRepository extends MongoRepository<FileMetadata, UUID> {
+    Optional<FileMetadata> findByIdAndUserId(UUID id, UUID userId);
 
-    Page<FileMetadata> findByUserId(UUID userId, Pageable pageable);
+    Page<FileMetadata> findByVisibility(Visibility visibility, Pageable pageable);
 
     @Query("{ 'visibility': ?0, 'tags': { $regex: ?1, $options: 'i' } }")
     Page<FileMetadata> findByVisibilityAndTagsContainingIgnoreCase(
@@ -23,14 +24,16 @@ public interface FileMetadataRepository extends MongoRepository<FileMetadata, St
             Pageable pageable
     );
 
+    Page<FileMetadata> findByUserId(UUID userId, Pageable pageable);
+
     @Query("{ 'userId': ?0, 'tags': { $regex: ?1, $options: 'i' } }")
     Page<FileMetadata> findByUserIdAndTagsContainingIgnoreCase(
-            String userId,
+            UUID userId,
             String tag,
             Pageable pageable
     );
 
     boolean existsByUserIdAndFileHash(UUID userId, String fileHash);
 
-    boolean existsByUserIdAndBasename(UUID userId, String basename);
+    boolean existsByUserIdAndBasenameAndFileExtension(UUID userId, String basename, String fileExtension);
 }

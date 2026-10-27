@@ -1,6 +1,7 @@
 package by.piskunou.teletronics.api.mapper;
 
 import by.piskunou.teletronics.api.to.request.FileUploadRequest;
+import by.piskunou.teletronics.api.to.response.FileMetadataResponse;
 import by.piskunou.teletronics.core.domain.FileMetadata;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -35,5 +36,18 @@ public abstract class FileMetadataMapper {
                 )
                 .visibility(request.visibility())
                 .build();
+    }
+
+    public FileMetadataResponse toResponse(FileMetadata domain) {
+        return new FileMetadataResponse(
+                domain.getId(),
+                domain.filename(),
+                domain.getVisibility(),
+                domain.getContentType(),
+                domain.getFileSize(),
+                domain.getTags(),
+                domain.getUploadDate(),
+                domain.downloadLink()
+        );
     }
 }

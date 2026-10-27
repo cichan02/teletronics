@@ -1,4 +1,4 @@
-package by.piskunou.teletronics.config;
+package by.piskunou.teletronics.api.interceptor;
 
 import by.piskunou.teletronics.core.domain.User;
 import by.piskunou.teletronics.infra.repository.UserRepository;
