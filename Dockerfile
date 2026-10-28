@@ -19,18 +19,25 @@ FROM package AS extract
 WORKDIR /build
 RUN java -Djarmode=tools -jar target/app.jar extract --layers --launcher --destination target/extracted
 
-FROM eclipse-temurin:25-jre-jammy AS prod
+FROM eclipse-temurin:25-jdk-alpine-3.24 AS jre
+RUN jlink \
+    --add-modules java.base,java.desktop,java.logging,java.naming,java.management,java.instrument,java.security.jgss,jdk.unsupported,jdk.crypto.ec,jdk.zipfs,jdk.management,java.xml,java.sql,java.net.http \
+    --strip-debug \
+    --no-man-pages \
+    --no-header-files \
+    --compress=zip-6 \
+    --output /opt/jre
+
+FROM alpine:3.24 AS prod
 ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
+RUN apk add --no-cache ca-certificates && \
+    addgroup -g "${UID}" appuser && \
+    adduser -D -H -u "${UID}" -G appuser -s /sbin/nologin appuser
+ENV JAVA_HOME=/opt/jre
+ENV PATH="/opt/jre/bin:${PATH}"
 WORKDIR /app
 RUN mkdir -p uploads && chown appuser:appuser uploads
+COPY --from=jre /opt/jre /opt/jre
 COPY --from=extract /build/target/extracted/dependencies/ ./
 COPY --from=extract /build/target/extracted/spring-boot-loader/ ./
 COPY --from=extract /build/target/extracted/snapshot-dependencies/ ./
