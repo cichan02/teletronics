@@ -1,7 +1,6 @@
 package by.piskunou.teletronics.api.mapper;
 
 import by.piskunou.teletronics.api.to.response.PaginationResponse;
-import by.piskunou.teletronics.api.to.response.collection.PageResponse;
 import by.piskunou.teletronics.core.domain.enumeration.SortBy;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

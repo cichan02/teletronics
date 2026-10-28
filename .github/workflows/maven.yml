@@ -51,4 +51,4 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: ./mvnw clean package -P release
+        run: ./mvnw clean verify -B -P release

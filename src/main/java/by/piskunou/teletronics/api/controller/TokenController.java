@@ -4,7 +4,6 @@ import by.piskunou.teletronics.api.mapper.TokenMapper;
 import by.piskunou.teletronics.api.to.response.DownloadLinkResponse;
 import by.piskunou.teletronics.api.utils.Headers;
 import by.piskunou.teletronics.core.domain.IssuedDownloadToken;
-import by.piskunou.teletronics.core.service.FileService;
 import by.piskunou.teletronics.core.service.TokenService;
 import by.piskunou.teletronics.core.utils.FileStorage;
 import by.piskunou.teletronics.infra.entity.FileMetadata;

@@ -10,7 +10,6 @@ import by.piskunou.teletronics.core.service.TokenService;
 import by.piskunou.teletronics.core.utils.FileUtils;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.infra.repository.FileMetadataRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

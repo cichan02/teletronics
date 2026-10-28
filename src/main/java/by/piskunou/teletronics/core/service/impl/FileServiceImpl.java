@@ -1,6 +1,5 @@
 package by.piskunou.teletronics.core.service.impl;
 
-import by.piskunou.teletronics.config.property.StorageProperties;
 import by.piskunou.teletronics.core.domain.enumeration.Visibility;
 import by.piskunou.teletronics.core.domain.exception.CannotDetectContentTypeException;
 import by.piskunou.teletronics.core.domain.exception.TeletronicsException;
