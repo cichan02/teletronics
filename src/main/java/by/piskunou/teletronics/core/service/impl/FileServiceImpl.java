@@ -80,7 +80,6 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileMetadata uploadFile(final MultipartFile file, final FileMetadata meta, final UUID userId) throws IOException, TeletronicsException {
-        // 1. Name: no file I/O at all
         final String originalFilename = requireFilename(file.getOriginalFilename());
         final String filename = meta.isSentinelBasename() ? originalFilename : meta.getBasename();
         final String fileExtension = resolveExtension(filename, originalFilename);
@@ -89,10 +88,8 @@ public class FileServiceImpl implements FileService {
             throw new FileAlreadyExistsException(basename + "." + fileExtension);
         }
 
-        // 2. Content type: Tika reads only the start of the file
         final String contentType = resolveContentType(file, meta);
 
-        // 3. Hash: the only full read
         final String fileHash;
         try (InputStream in = file.getInputStream()) {
             fileHash = FileHasher.calc(in);
@@ -101,7 +98,6 @@ public class FileServiceImpl implements FileService {
             throw new FileWithContentAlreadyExistsException(fileHash);
         }
 
-        // 4. Move into place (a rename), then save; undo the move if the save fails
         final UUID fileId = UUID.randomUUID();
         final Path stored = storage.store(file, userId, fileId, fileExtension);
         try {
