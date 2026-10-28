@@ -17,8 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Document(collection = "file_metadata")
-@CompoundIndex(name = "user_hash_idx", def = "{'userId': 1, 'fileHash': 1}")
-@CompoundIndex(name = "user_filename_idx", def = "{'userId': 1, 'basename': 1, 'fileExtension': 1}")
+@CompoundIndex(name = "user_hash_idx", def = "{'userId': 1, 'fileHash': 1}", unique = true)
+@CompoundIndex(name = "user_filename_idx", def = "{'userId': 1, 'basename': 1, 'fileExtension': 1}", unique = true)
 @Getter
 @Setter
 @Builder

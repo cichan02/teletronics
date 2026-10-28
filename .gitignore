@@ -191,4 +191,5 @@ buildNumber.properties
 logs/
 *.log
 uploads/
+src/test/resources/files/
 docker-compose.yml
