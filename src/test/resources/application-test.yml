@@ -4,7 +4,7 @@ de:
   flapdoodle:
     mongodb:
       embedded:
-        version: 7.0.7
+        version: 9.0.4
 
 spring:
   application:
