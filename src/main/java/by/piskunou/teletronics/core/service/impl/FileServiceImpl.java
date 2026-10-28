@@ -1,7 +1,6 @@
 package by.piskunou.teletronics.core.service.impl;
 
 import by.piskunou.teletronics.config.property.StorageProperties;
-import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.core.domain.enumeration.Visibility;
 import by.piskunou.teletronics.core.domain.exception.CannotDetectContentTypeException;
 import by.piskunou.teletronics.core.domain.exception.TeletronicsException;
@@ -10,11 +9,11 @@ import by.piskunou.teletronics.core.domain.exception.impl.FileContentTypeMismatc
 import by.piskunou.teletronics.core.domain.exception.impl.FileNotFoundException;
 import by.piskunou.teletronics.core.domain.exception.impl.FileWithContentAlreadyExistsException;
 import by.piskunou.teletronics.core.service.FileService;
-import by.piskunou.teletronics.core.utils.FileUtils;
 import by.piskunou.teletronics.core.utils.FileHasher;
+import by.piskunou.teletronics.core.utils.FileUtils;
+import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.infra.repository.FileMetadataRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -34,7 +33,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {

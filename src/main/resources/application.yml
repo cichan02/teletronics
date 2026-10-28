@@ -35,11 +35,6 @@ management:
     health:
       show-details: always
 
-logging:
-  file:
-    path: logs
-    name: ${logging.file.path}/${spring.application.name}.log
-
 ---
 #Dev environment
 spring:
@@ -55,6 +50,11 @@ springdoc:
   api-docs:
     enabled: true
     path: /api-docs
+
+logging:
+  file:
+    path: logs
+    name: ${logging.file.path}/${spring.application.name}.log
 
 ---
 #Release environment

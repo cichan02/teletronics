@@ -17,7 +17,7 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 
 FROM package as extract
 WORKDIR /build
-RUN java -Djarmode=layertools -jar target/app.jar extract --destination target/extracted
+RUN java -Djarmode=tools -jar target/app.jar extract --layers --launcher --destination target/extracted
 
 FROM eclipse-temurin:25-jre-jammy AS prod
 ARG UID=10001
@@ -29,10 +29,13 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+WORKDIR /app
+RUN mkdir -p uploads && chown appuser:appuser uploads
+COPY --from=extract /build/target/extracted/dependencies/ ./
+COPY --from=extract /build/target/extracted/spring-boot-loader/ ./
+COPY --from=extract /build/target/extracted/snapshot-dependencies/ ./
+COPY --from=extract /build/target/extracted/application/ ./
 USER appuser
-COPY --from=extract build/target/extracted/dependencies/ ./
-COPY --from=extract build/target/extracted/spring-boot-loader/ ./
-COPY --from=extract build/target/extracted/snapshot-dependencies/ ./
-COPY --from=extract build/target/extracted/application/ ./
+VOLUME /app/uploads
 EXPOSE 56789
 ENTRYPOINT [ "java", "-Dspring.profiles.active=release", "org.springframework.boot.loader.launch.JarLauncher" ]
