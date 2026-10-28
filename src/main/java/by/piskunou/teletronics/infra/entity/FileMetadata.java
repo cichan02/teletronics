@@ -1,4 +1,4 @@
-package by.piskunou.teletronics.core.domain;
+package by.piskunou.teletronics.infra.entity;
 
 import by.piskunou.teletronics.core.domain.enumeration.Visibility;
 import lombok.Builder;
@@ -9,9 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -73,15 +71,5 @@ public final class FileMetadata {
 
     public String filename() {
         return basename + "." + fileExtension;
-    }
-
-    //TODO: check correct current context path
-    public URI downloadLink() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/files")
-                .path(this.id.toString())
-                .path("/download")
-                .build()
-                .toUri();
     }
 }

@@ -14,8 +14,7 @@ public record FileMetadataResponse(
         String contentType,
         Long fileSize,
         Set<String> tags,
-        Instant uploadDate,
-        URI downloadLink
+        Instant uploadDate
 ) {
 
 }

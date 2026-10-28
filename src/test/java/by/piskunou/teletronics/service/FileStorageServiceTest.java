@@ -1,9 +1,9 @@
 //package by.piskunou.teletronics.service;
 //
 //import by.piskunou.teletronics.api.dto.*;
-//import by.piskunou.teletronics.core.domain.FileMetadata;
+//import by.piskunou.teletronics.infra.entity.FileMetadata;
 //import by.piskunou.teletronics.core.domain.Tag;
-//import by.piskunou.teletronics.core.domain.User;
+//import by.piskunou.teletronics.infra.entity.User;
 //import by.piskunou.teletronics.core.domain.enumeration.Visibility;
 //import by.piskunou.teletronics.core.service.FileStorageService;
 //import by.piskunou.teletronics.infra.repository.FileMetadataRepository;

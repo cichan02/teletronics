@@ -22,6 +22,9 @@ spring:
 file:
   storage:
     location: ./uploads
+  token-download:
+    secret: ${DOWNLOAD_TOKEN_SECRET}
+    ttl: PT15M
 
 management:
   endpoints:
@@ -39,9 +42,6 @@ logging:
 
 ---
 #Dev environment
-server:
-  port: 0
-
 spring:
   config:
     activate:

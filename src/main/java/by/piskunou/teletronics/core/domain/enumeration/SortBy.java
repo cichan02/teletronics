@@ -1,6 +1,6 @@
 package by.piskunou.teletronics.core.domain.enumeration;
 
-import by.piskunou.teletronics.core.domain.FileMetadata;
+import by.piskunou.teletronics.infra.entity.FileMetadata;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor

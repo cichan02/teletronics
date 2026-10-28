@@ -2,8 +2,9 @@ package by.piskunou.teletronics.api.mapper;
 
 import by.piskunou.teletronics.api.to.request.FileUploadRequest;
 import by.piskunou.teletronics.api.to.response.FileMetadataResponse;
-import by.piskunou.teletronics.core.domain.FileMetadata;
+import by.piskunou.teletronics.infra.entity.FileMetadata;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.springframework.http.MediaType;
 
@@ -38,16 +39,6 @@ public abstract class FileMetadataMapper {
                 .build();
     }
 
-    public FileMetadataResponse toResponse(FileMetadata domain) {
-        return new FileMetadataResponse(
-                domain.getId(),
-                domain.filename(),
-                domain.getVisibility(),
-                domain.getContentType(),
-                domain.getFileSize(),
-                domain.getTags(),
-                domain.getUploadDate(),
-                domain.downloadLink()
-        );
-    }
+    @Mapping(target = "filename", expression = "java(domain.filename())")
+    public abstract FileMetadataResponse toResponse(FileMetadata domain);
 }

@@ -2,8 +2,8 @@
 //
 //import by.piskunou.teletronics.TeletronicsApp;
 //import by.piskunou.teletronics.api.to.request.FileUpdateRequest;
-//import by.piskunou.teletronics.core.domain.FileMetadata;
-//import by.piskunou.teletronics.core.domain.User;
+//import by.piskunou.teletronics.infra.entity.FileMetadata;
+//import by.piskunou.teletronics.infra.entity.User;
 //import by.piskunou.teletronics.infra.repository.FileMetadataRepository;
 //import by.piskunou.teletronics.infra.repository.UserRepository;
 //import com.fasterxml.jackson.databind.ObjectMapper;
