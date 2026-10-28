@@ -6,6 +6,7 @@ import by.piskunou.teletronics.api.utils.Headers;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.core.domain.IssuedDownloadToken;
 import by.piskunou.teletronics.core.service.TokenService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.core.io.FileSystemResource;
@@ -32,7 +33,7 @@ public class TokenController {
     @SneakyThrows
     @GetMapping(path = "/generate-link/{fileId}")
     public ResponseEntity<DownloadLinkResponse> issueDownloadLink(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId,
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @PathVariable UUID fileId
     ) {
         IssuedDownloadToken issued = service.issueDownloadToken(fileId, userId);

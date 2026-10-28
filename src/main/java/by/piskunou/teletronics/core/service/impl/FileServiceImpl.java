@@ -119,7 +119,7 @@ public class FileServiceImpl implements FileService {
 
         // Create metadata
         FileMetadata forSave = FileMetadata.builder()
-                .id(UUID.randomUUID())
+                .id(fileId)
                 .basename(basename)
                 .visibility(meta.getVisibility())
                 .userId(userId)
@@ -204,7 +204,7 @@ public class FileServiceImpl implements FileService {
         Path filePath = Paths.get(storageProps.location(), userId.toString())
                 .toAbsolutePath()
                 .normalize()
-                .resolve(meta.getId() + "." + meta.getFileExtension());
+                .resolve(meta.filename());
         Files.deleteIfExists(filePath);
 
         repository.deleteById(meta.getId());

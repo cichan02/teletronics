@@ -12,7 +12,7 @@ import java.net.URI;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class TokenMapper {
     public DownloadLinkResponse toResponse(IssuedDownloadToken domain) {
-        URI link = ServletUriComponentsBuilder.fromCurrentRequest()
+        URI link = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(TokenController.DOWNLOAD_LINK_PATH)
                 .queryParam(TokenController.DOWNLOAD_TOKEN_PARAM, domain.token())
                 .build()

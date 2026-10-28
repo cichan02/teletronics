@@ -7,10 +7,12 @@ import by.piskunou.teletronics.core.domain.exception.TeletronicsException;
 import by.piskunou.teletronics.core.domain.exception.impl.FileNotFoundException;
 import by.piskunou.teletronics.core.domain.exception.impl.InvalidDownloadTokenException;
 import by.piskunou.teletronics.core.service.TokenService;
+import by.piskunou.teletronics.core.utils.FileUtils;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.infra.repository.FileMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,7 +25,6 @@ import java.util.Base64;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
     private static final String ALGORITHM = "HmacSHA256";
     private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
@@ -41,6 +42,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IssuedDownloadToken issueDownloadToken(UUID fileId, UUID userId) throws TeletronicsException {
         //check if file belongs to user
         repository.findByIdAndUserId(fileId, userId)
@@ -57,9 +59,11 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FileMetadata findByDownloadToken(String token) throws TeletronicsException {
         DownloadToken dt = verify(token);
         return repository.findById(dt.fileId())
+                .filter(fm -> FileUtils.isVisibleForUser(fm, dt.ownerId()))
                 .orElseThrow(() -> new FileNotFoundException(dt.fileId()));
     }
 

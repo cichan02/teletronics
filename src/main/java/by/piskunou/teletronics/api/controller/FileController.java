@@ -12,8 +12,10 @@ import by.piskunou.teletronics.core.domain.enumeration.SortBy;
 import by.piskunou.teletronics.core.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class FileController {
 
     @GetMapping("/my")
     public ResponseEntity<PageResponse<FileMetadataResponse>> listMyFiles(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId,
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @RequestParam(required = false) Optional<String> tag,
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "20") int size,
@@ -87,7 +89,7 @@ public class FileController {
             )
     )
     public ResponseEntity<FileMetadataResponse> uploadFile(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId,
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @RequestPart @Validated @NotNull MultipartFile file,
             @RequestPart @Validated FileUploadRequest uploadRequest
     ) {
@@ -102,7 +104,7 @@ public class FileController {
     @SneakyThrows
     @PatchMapping(path = "/{id}/filename")
     public ResponseEntity<Void> updateFilename(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId,
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @PathVariable UUID id,
             @RequestBody @Validated FilenameUpdateRequest request
     ) {
@@ -113,7 +115,7 @@ public class FileController {
     @SneakyThrows
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFile(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId,
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @PathVariable UUID id
     ) {
         service.deleteFile(id, userId);
