@@ -78,7 +78,7 @@ public class TokenServiceImpl implements TokenService {
             DownloadToken parsed = new DownloadToken(
                     UUID.fromString(p[0]),
                     UUID.fromString(p[1]),
-                    Instant.ofEpochSecond(Long.parseLong(p[3]))
+                    Instant.ofEpochSecond(Long.parseLong(p[2]))
             );
             if (parsed.expiresAt().isBefore(Instant.now())) {
                 throw new InvalidDownloadTokenException("Token expired");
