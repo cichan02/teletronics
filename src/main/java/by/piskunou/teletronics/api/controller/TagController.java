@@ -3,6 +3,7 @@ package by.piskunou.teletronics.api.controller;
 import by.piskunou.teletronics.api.to.response.collection.CollectionResponse;
 import by.piskunou.teletronics.api.utils.Headers;
 import by.piskunou.teletronics.core.service.TagService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class TagController {
 
     @GetMapping(path = "/my", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CollectionResponse<String>> listMyTags(
-            @RequestHeader(name = Headers.X_USER_ID) UUID userId
+            @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId
     ) {
         return ResponseEntity.ok(new CollectionResponse<>(
                 service.userTags(userId)
