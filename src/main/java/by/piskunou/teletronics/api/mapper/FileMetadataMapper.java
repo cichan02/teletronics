@@ -23,7 +23,7 @@ public abstract class FileMetadataMapper {
                 .contentType(request
                         .contentType()
                         .map(MediaType::parseMediaType)
-                        .map(MediaType::toString)
+                        .map(mt -> mt.getType() + "/" + mt.getSubtype())
                         .orElse(FileMetadata.SENTINEL_CONTENT_TYPE)
                 )
                 .tags(Optional.ofNullable(request.tags())

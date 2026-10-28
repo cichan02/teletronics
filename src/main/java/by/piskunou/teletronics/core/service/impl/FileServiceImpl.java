@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,12 +44,24 @@ public class FileServiceImpl implements FileService {
     private final StorageProperties storageProps;
 
     @Override
+    public Path resolve(FileMetadata fileMetadata) {
+        return basePath()
+                .resolve(fileMetadata.relativePath());
+    }
+
+    private Path basePath() {
+        return Path.of(storageProps.location())
+                .toAbsolutePath()
+                .normalize();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<FileMetadata> allPublicFiles(Optional<String> tag, Pageable pageable) {
         if (isValidTag(tag)) {
             return repository.findByVisibilityAndTagsContainingIgnoreCase(
                     Visibility.PUBLIC,
-                    tag.get(),
+                    normalizeTag(tag.get()),
                     pageable
             );
         }
@@ -63,12 +74,16 @@ public class FileServiceImpl implements FileService {
         if (isValidTag(tag)) {
             return repository.findByUserIdAndTagsContainingIgnoreCase(
                     userId,
-                    tag.get(),
+                    normalizeTag(tag.get()),
                     pageable
             );
         }
 
         return repository.findByUserId(userId, pageable);
+    }
+
+    private String normalizeTag(String tag) {
+        return tag.trim().toLowerCase();
     }
 
     private boolean isValidTag(Optional<String> tag) {
@@ -97,7 +112,7 @@ public class FileServiceImpl implements FileService {
 
         // filename section
         final String filename = meta.isSentinelBasename() ? file.getOriginalFilename() : meta.getBasename();
-        if (filename == null) {
+        if (filename == null || filename.isBlank()) {
             //TODO: write normal exception
             throw new IllegalArgumentException("Filename cannot be null");
         }
@@ -105,7 +120,12 @@ public class FileServiceImpl implements FileService {
         // file extension section
         String fileExtension = FilenameUtils.getExtension(filename);
         if (!FileUtils.isValidExtension(fileExtension)) {
-            fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.isBlank()) {
+                //TODO: write normal exception
+                throw new IllegalArgumentException("Filename cannot be null");
+            }
+            fileExtension = FilenameUtils.getExtension(originalFilename);
         }
 
         // basename section
@@ -116,9 +136,7 @@ public class FileServiceImpl implements FileService {
 
         // store file on server
         final UUID fileId = UUID.randomUUID();
-        Path uploadPath = Paths.get(storageProps.location(), userId.toString())
-                .toAbsolutePath()
-                .normalize();
+        Path uploadPath = basePath().resolve(userId.toString());
         Files.createDirectories(uploadPath);
         Path targetLocation = uploadPath.resolve(fileId + "." + fileExtension);
         try (InputStream inputStream = file.getInputStream()) {
@@ -186,11 +204,12 @@ public class FileServiceImpl implements FileService {
     }
 
     private void updateExtension(String newExtension, FileMetadata meta, UUID userId) throws IOException {
-        Path uploadPath = Paths.get(storageProps.location(), userId.toString())
-                .toAbsolutePath()
-                .normalize();
-        Path source = uploadPath.resolve(meta.getId() + "." + meta.getFileExtension());
-        Path target = uploadPath.resolve(meta.getId() + "." + newExtension);
+        Path source = resolve(meta);
+        Path target = basePath()
+                .resolve(
+                        meta.getUserId().toString(),
+                        meta.getId() + "." + newExtension
+                );
 
         Files.move(source, target);
 
@@ -203,10 +222,7 @@ public class FileServiceImpl implements FileService {
         FileMetadata meta = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new FileNotFoundException(id));
 
-        Files.deleteIfExists(Paths.get(
-                storageProps.location(),
-                meta.relativePath().toString()
-        ));
+        Files.deleteIfExists(resolve(meta));
 
         repository.deleteById(meta.getId());
     }

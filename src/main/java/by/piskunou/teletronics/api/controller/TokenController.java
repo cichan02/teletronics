@@ -3,10 +3,10 @@ package by.piskunou.teletronics.api.controller;
 import by.piskunou.teletronics.api.mapper.TokenMapper;
 import by.piskunou.teletronics.api.to.response.DownloadLinkResponse;
 import by.piskunou.teletronics.api.utils.Headers;
-import by.piskunou.teletronics.config.property.StorageProperties;
-import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.core.domain.IssuedDownloadToken;
+import by.piskunou.teletronics.core.service.FileService;
 import by.piskunou.teletronics.core.service.TokenService;
+import by.piskunou.teletronics.infra.entity.FileMetadata;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 @RestController
@@ -28,11 +27,10 @@ public class TokenController {
     public static final String DOWNLOAD_LINK_PATH = "/download";
     public static final String DOWNLOAD_TOKEN_PARAM = "token";
 
-    private final TokenService service;
+    private final TokenService tokenService;
+    private final FileService fileService;;
 
     private final TokenMapper mapper;
-
-    private final StorageProperties storageProps;
 
     @SneakyThrows
     @GetMapping(path = "/generate-link/{fileId}")
@@ -40,7 +38,7 @@ public class TokenController {
             @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @PathVariable UUID fileId
     ) {
-        IssuedDownloadToken issued = service.issueDownloadToken(fileId, userId);
+        IssuedDownloadToken issued = tokenService.issueDownloadToken(fileId, userId);
         return ResponseEntity.ok(mapper.toResponse(issued));
     }
 
@@ -49,7 +47,7 @@ public class TokenController {
     public ResponseEntity<Resource> downloadFile(
             @RequestParam(DOWNLOAD_TOKEN_PARAM) String token
     ) {
-        FileMetadata meta = service.findByDownloadToken(token);
+        FileMetadata meta = tokenService.findByDownloadToken(token);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
@@ -59,9 +57,6 @@ public class TokenController {
                 )
                 .contentType(MediaType.parseMediaType(meta.getContentType()))
                 .contentLength(meta.getFileSize())
-                .body(new FileSystemResource(Paths.get(
-                        storageProps.location(),
-                        meta.relativePath().toString()
-                )));
+                .body(new FileSystemResource(fileService.resolve(meta)));
     }
 }

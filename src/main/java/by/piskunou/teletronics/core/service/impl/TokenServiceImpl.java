@@ -44,7 +44,6 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional(readOnly = true)
     public IssuedDownloadToken issueDownloadToken(UUID fileId, UUID userId) throws TeletronicsException {
-        //check if file belongs to user
         repository.findById(fileId)
                 .filter(fm -> FileUtils.isVisibleForUser(fm, userId))
                 .orElseThrow(() -> new FileNotFoundException(fileId));

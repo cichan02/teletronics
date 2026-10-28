@@ -7,10 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface FileService {
+    Path resolve(FileMetadata fileMetadata);
+
     Page<FileMetadata> allPublicFiles(Optional<String> tag, Pageable pageable);
 
     Page<FileMetadata> listUserFiles(UUID userId, Optional<String> tag, Pageable pageable);
