@@ -43,7 +43,7 @@ public class FileController {
     @GetMapping("/public")
     public ResponseEntity<PageResponse<FileMetadataResponse>> listPublicFiles(
             @RequestParam(required = false) Optional<String> tag,
-            @RequestParam(defaultValue = "0")@Min(0) int pageNumber,
+            @RequestParam(defaultValue = "0") @Min(0) int pageNumber,
             @RequestParam(defaultValue = "20") @Min(1) int size,
             @RequestParam(defaultValue = SortBy.DEFAULT) SortBy sortBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction
@@ -62,8 +62,8 @@ public class FileController {
     public ResponseEntity<PageResponse<FileMetadataResponse>> listMyFiles(
             @Schema(example = "9c4a842e-1c16-4a55-ae0b-ccbfe7a3a660") @RequestHeader(name = Headers.X_USER_ID) UUID userId,
             @RequestParam(required = false) Optional<String> tag,
-            @RequestParam(defaultValue = "0") int pageNumber,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "0") @Min(0) int pageNumber,
+            @RequestParam(defaultValue = "20") @Min(1) int size,
             @RequestParam(defaultValue = SortBy.DEFAULT) SortBy sortBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction
     ) {

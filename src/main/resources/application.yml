@@ -30,7 +30,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,shutdown
+        include: health,info
   endpoint:
     health:
       show-details: always

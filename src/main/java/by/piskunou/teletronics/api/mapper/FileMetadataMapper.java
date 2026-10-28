@@ -29,6 +29,7 @@ public abstract class FileMetadataMapper {
                 .tags(Optional.ofNullable(request.tags())
                         .map(tags -> tags
                                 .stream()
+                                .filter(t -> t != null && !t.isBlank())
                                 .map(String::trim)
                                 .map(String::toLowerCase)
                                 .collect(Collectors.toSet())

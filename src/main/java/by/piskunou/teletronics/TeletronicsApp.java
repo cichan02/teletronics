@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @SpringBootApplication
 @ConfigurationPropertiesScan("by.piskunou.teletronics.config.property")
 public class TeletronicsApp {
-    static void main() {
-        SpringApplication.run(TeletronicsApp.class);
+    static void main(String[] args) {
+        SpringApplication.run(TeletronicsApp.class, args);
     }
 }

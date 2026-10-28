@@ -42,7 +42,7 @@ public class FileServiceImpl implements FileService {
     private final FileMetadataRepository repository;
     private final Tika tika;
     
-    private final StorageProperties storageProps;;
+    private final StorageProperties storageProps;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,7 +79,11 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public FileMetadata uploadFile(final MultipartFile file, final FileMetadata meta, final UUID userId) throws IOException, TeletronicsException {
         // fileHash section
-        String fileHash = FileHasher.calc(file.getInputStream());
+        final String fileHash;
+        try(InputStream in = file.getInputStream()) {
+            fileHash = FileHasher.calc(in);
+        }
+
         if (repository.existsByUserIdAndFileHash(userId, fileHash)) {
             throw new FileWithContentAlreadyExistsException(fileHash);
         }
@@ -93,6 +97,10 @@ public class FileServiceImpl implements FileService {
 
         // filename section
         final String filename = meta.isSentinelBasename() ? file.getOriginalFilename() : meta.getBasename();
+        if (filename == null) {
+            //TODO: write normal exception
+            throw new IllegalArgumentException("Filename cannot be null");
+        }
 
         // file extension section
         String fileExtension = FilenameUtils.getExtension(filename);
@@ -127,7 +135,6 @@ public class FileServiceImpl implements FileService {
                 .contentType(contentType)
                 .fileSize(file.getSize())
                 .fileHash(fileHash)
-                .storagePath(targetLocation.toString())
                 .tags(meta.getTags())
                 .uploadDate(Instant.now())
                 .build();
@@ -154,45 +161,40 @@ public class FileServiceImpl implements FileService {
         FileMetadata meta = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new FileNotFoundException(id));
 
+        String newBasename = FilenameUtils.getBaseName(newFilename);
         String newFileExtension = FilenameUtils.getExtension(newFilename);
         if (FileUtils.isValidExtension(newFileExtension) && !Objects.equals(newFileExtension, meta.getFileExtension())) {
-            updateBasename(FilenameUtils.getBaseName(newFilename), newFileExtension, meta, userId);
+            updateBasename(newBasename, newFileExtension, meta, userId);
             updateExtension(newFileExtension, meta, userId);
         } else {
-            updateBasename(FilenameUtils.getBaseName(newFilename), meta.getFileExtension(), meta, userId);
+            updateBasename(newBasename, meta.getFileExtension(), meta, userId);
         }
 
         repository.save(meta);
     }
 
     private void updateBasename(String newBasename, String fileExtension, FileMetadata meta, UUID userId) throws TeletronicsException {
-        final String oldBasename = meta.getBasename();
-        if (Objects.equals(newBasename, oldBasename)) {
-            return;
-        }
-
         if (repository.existsByUserIdAndBasenameAndFileExtension(userId, newBasename, fileExtension)) {
             throw new FileAlreadyExistsException(newBasename + "." + fileExtension);
+        }
+
+        if (Objects.equals(newBasename, meta.getBasename())) {
+            return;
         }
 
         meta.setBasename(newBasename);
     }
 
     private void updateExtension(String newExtension, FileMetadata meta, UUID userId) throws IOException {
-        final String oldExtension = meta.getFileExtension();
-        if (Objects.equals(newExtension, oldExtension)) {
-            return;
-        }
-
-        meta.setFileExtension(newExtension);
-
         Path uploadPath = Paths.get(storageProps.location(), userId.toString())
                 .toAbsolutePath()
                 .normalize();
-        Path source = uploadPath.resolve(meta.getId() + "." + oldExtension);
+        Path source = uploadPath.resolve(meta.getId() + "." + meta.getFileExtension());
         Path target = uploadPath.resolve(meta.getId() + "." + newExtension);
 
         Files.move(source, target);
+
+        meta.setFileExtension(newExtension);
     }
 
     @Override
@@ -201,11 +203,10 @@ public class FileServiceImpl implements FileService {
         FileMetadata meta = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new FileNotFoundException(id));
 
-        Path filePath = Paths.get(storageProps.location(), userId.toString())
-                .toAbsolutePath()
-                .normalize()
-                .resolve(meta.filename());
-        Files.deleteIfExists(filePath);
+        Files.deleteIfExists(Paths.get(
+                storageProps.location(),
+                meta.relativePath().toString()
+        ));
 
         repository.deleteById(meta.getId());
     }

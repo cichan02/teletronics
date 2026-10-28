@@ -10,13 +10,15 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
 @Document(collection = "file_metadata")
 @CompoundIndex(name = "user_hash_idx", def = "{'userId': 1, 'fileHash': 1}")
-@CompoundIndex(name = "user_filename_idx", def = "{'userId': 1, 'filename': 1}")
+@CompoundIndex(name = "user_filename_idx", def = "{'userId': 1, 'basename': 1, 'fileExtension': 1}")
 @Getter
 @Setter
 @Builder
@@ -46,8 +48,6 @@ public final class FileMetadata {
 
     private final String fileHash;
 
-    private final String storagePath;
-
     private final Set<String> tags;
 
     @Indexed
@@ -71,5 +71,12 @@ public final class FileMetadata {
 
     public String filename() {
         return basename + "." + fileExtension;
+    }
+
+    public Path relativePath() {
+        return Paths.get(
+                userId.toString(),
+                id + "." + fileExtension
+        );
     }
 }

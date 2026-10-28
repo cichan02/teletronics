@@ -45,7 +45,8 @@ public class TokenServiceImpl implements TokenService {
     @Transactional(readOnly = true)
     public IssuedDownloadToken issueDownloadToken(UUID fileId, UUID userId) throws TeletronicsException {
         //check if file belongs to user
-        repository.findByIdAndUserId(fileId, userId)
+        repository.findById(fileId)
+                .filter(fm -> FileUtils.isVisibleForUser(fm, userId))
                 .orElseThrow(() -> new FileNotFoundException(fileId));
 
         Instant expiresAt = Instant.now().plus(ttl);
@@ -63,7 +64,6 @@ public class TokenServiceImpl implements TokenService {
     public FileMetadata findByDownloadToken(String token) throws TeletronicsException {
         DownloadToken dt = verify(token);
         return repository.findById(dt.fileId())
-                .filter(fm -> FileUtils.isVisibleForUser(fm, dt.ownerId()))
                 .orElseThrow(() -> new FileNotFoundException(dt.fileId()));
     }
 

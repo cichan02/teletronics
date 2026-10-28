@@ -3,6 +3,7 @@ package by.piskunou.teletronics.api.controller;
 import by.piskunou.teletronics.api.mapper.TokenMapper;
 import by.piskunou.teletronics.api.to.response.DownloadLinkResponse;
 import by.piskunou.teletronics.api.utils.Headers;
+import by.piskunou.teletronics.config.property.StorageProperties;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.core.domain.IssuedDownloadToken;
 import by.piskunou.teletronics.core.service.TokenService;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +31,8 @@ public class TokenController {
     private final TokenService service;
 
     private final TokenMapper mapper;
+
+    private final StorageProperties storageProps;
 
     @SneakyThrows
     @GetMapping(path = "/generate-link/{fileId}")
@@ -55,6 +59,9 @@ public class TokenController {
                 )
                 .contentType(MediaType.parseMediaType(meta.getContentType()))
                 .contentLength(meta.getFileSize())
-                .body(new FileSystemResource(meta.getStoragePath()));
+                .body(new FileSystemResource(Paths.get(
+                        storageProps.location(),
+                        meta.relativePath().toString()
+                )));
     }
 }
