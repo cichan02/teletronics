@@ -10,6 +10,7 @@ import by.piskunou.teletronics.core.domain.exception.impl.FileNotFoundException;
 import by.piskunou.teletronics.core.domain.exception.impl.FileWithContentAlreadyExistsException;
 import by.piskunou.teletronics.core.service.FileService;
 import by.piskunou.teletronics.core.utils.FileHasher;
+import by.piskunou.teletronics.core.utils.FileStorage;
 import by.piskunou.teletronics.core.utils.FileUtils;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import by.piskunou.teletronics.infra.repository.FileMetadataRepository;
@@ -39,19 +40,7 @@ public class FileServiceImpl implements FileService {
     private final FileMetadataRepository repository;
     private final Tika tika;
     
-    private final StorageProperties storageProps;
-
-    @Override
-    public Path resolve(FileMetadata fileMetadata) {
-        return basePath()
-                .resolve(fileMetadata.relativePath());
-    }
-
-    private Path basePath() {
-        return Path.of(storageProps.location())
-                .toAbsolutePath()
-                .normalize();
-    }
+    private final FileStorage storage;
 
     @Override
     @Transactional(readOnly = true)
@@ -91,72 +80,74 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileMetadata uploadFile(final MultipartFile file, final FileMetadata meta, final UUID userId) throws IOException, TeletronicsException {
-        // fileHash section
-        final String fileHash;
-        try(InputStream in = file.getInputStream()) {
-            fileHash = FileHasher.calc(in);
-        }
-
-        if (repository.existsByUserIdAndFileHash(userId, fileHash)) {
-            throw new FileWithContentAlreadyExistsException(fileHash);
-        }
-
-        // contentType section
-        final String detectedContentType = detect(file);
-        final String contentType = meta.isSentinelContentType() ? detectedContentType : meta.getContentType();
-        if (!Objects.equals(detectedContentType, contentType)) {
-            throw new FileContentTypeMismatchException(detectedContentType, contentType);
-        }
-
-        // filename section
-        final String filename = meta.isSentinelBasename() ? file.getOriginalFilename() : meta.getBasename();
-        if (filename == null || filename.isBlank()) {
-            //TODO: write normal exception
-            throw new IllegalArgumentException("Filename cannot be null");
-        }
-
-        // file extension section
-        String fileExtension = FilenameUtils.getExtension(filename);
-        if (!FileUtils.isValidExtension(fileExtension)) {
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename == null || originalFilename.isBlank()) {
-                //TODO: write normal exception
-                throw new IllegalArgumentException("Filename cannot be null");
-            }
-            fileExtension = FilenameUtils.getExtension(originalFilename);
-        }
-
-        // basename section
+        // 1. Name: no file I/O at all
+        final String originalFilename = requireFilename(file.getOriginalFilename());
+        final String filename = meta.isSentinelBasename() ? originalFilename : meta.getBasename();
+        final String fileExtension = resolveExtension(filename, originalFilename);
         final String basename = FilenameUtils.getBaseName(filename);
         if (repository.existsByUserIdAndBasenameAndFileExtension(userId, basename, fileExtension)) {
             throw new FileAlreadyExistsException(basename + "." + fileExtension);
         }
 
-        // store file on server
-        final UUID fileId = UUID.randomUUID();
-        Path uploadPath = basePath().resolve(userId.toString());
-        Files.createDirectories(uploadPath);
-        Path targetLocation = uploadPath.resolve(fileId + "." + fileExtension);
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, targetLocation);
+        // 2. Content type: Tika reads only the start of the file
+        final String contentType = resolveContentType(file, meta);
+
+        // 3. Hash: the only full read
+        final String fileHash;
+        try (InputStream in = file.getInputStream()) {
+            fileHash = FileHasher.calc(in);
+        }
+        if (repository.existsByUserIdAndFileHash(userId, fileHash)) {
+            throw new FileWithContentAlreadyExistsException(fileHash);
         }
 
-        // Create metadata
-        FileMetadata forSave = FileMetadata.builder()
-                .id(fileId)
-                .basename(basename)
-                .visibility(meta.getVisibility())
-                .userId(userId)
-                .fileExtension(fileExtension)
-                .contentType(contentType)
-                .fileSize(file.getSize())
-                .fileHash(fileHash)
-                .tags(meta.getTags())
-                .uploadDate(Instant.now())
-                .build();
-        repository.save(forSave);
+        // 4. Move into place (a rename), then save; undo the move if the save fails
+        final UUID fileId = UUID.randomUUID();
+        final Path stored = storage.store(file, userId, fileId, fileExtension);
+        try {
+            return repository.save(FileMetadata.builder()
+                    .id(fileId)
+                    .basename(basename)
+                    .fileExtension(fileExtension)
+                    .visibility(meta.getVisibility())
+                    .userId(userId)
+                    .contentType(contentType)
+                    .fileSize(file.getSize())
+                    .fileHash(fileHash)
+                    .tags(meta.getTags())
+                    .uploadDate(Instant.now())
+                    .build());
+        } catch (RuntimeException e) {
+            storage.delete(stored);
+            throw e;
+        }
+    }
 
-        return forSave;
+    private String requireFilename(String filename) {
+        if (filename == null || filename.isBlank()) {
+            throw new IllegalArgumentException("Filename must be provided");
+        }
+        return filename;
+    }
+
+    private String resolveExtension(String filename, String originalFilename) {
+        String ext = FilenameUtils.getExtension(filename);
+        if (FileUtils.isValidExtension(ext)) {
+            return ext;
+        }
+        ext = FilenameUtils.getExtension(originalFilename);
+        return FileUtils.isValidExtension(ext) ? ext : "";
+    }
+
+    private String resolveContentType(MultipartFile file, FileMetadata meta) throws FileContentTypeMismatchException {
+        String detected = detect(file);
+        if (meta.isSentinelContentType()) {
+            return detected;
+        }
+        if (!Objects.equals(detected, meta.getContentType())) {
+            throw new FileContentTypeMismatchException(detected, meta.getContentType());
+        }
+        return meta.getContentType();
     }
 
     private String detect(MultipartFile file) {
@@ -202,8 +193,8 @@ public class FileServiceImpl implements FileService {
     }
 
     private void updateExtension(String newExtension, FileMetadata meta, UUID userId) throws IOException {
-        Path source = resolve(meta);
-        Path target = basePath()
+        Path source = storage.resolve(meta);
+        Path target = storage.basePath()
                 .resolve(
                         meta.getUserId().toString(),
                         meta.getId() + "." + newExtension
@@ -220,7 +211,7 @@ public class FileServiceImpl implements FileService {
         FileMetadata meta = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new FileNotFoundException(id));
 
-        Files.deleteIfExists(resolve(meta));
+        Files.deleteIfExists(storage.resolve(meta));
 
         repository.deleteById(meta.getId());
     }

@@ -6,6 +6,7 @@ import by.piskunou.teletronics.api.utils.Headers;
 import by.piskunou.teletronics.core.domain.IssuedDownloadToken;
 import by.piskunou.teletronics.core.service.FileService;
 import by.piskunou.teletronics.core.service.TokenService;
+import by.piskunou.teletronics.core.utils.FileStorage;
 import by.piskunou.teletronics.infra.entity.FileMetadata;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class TokenController {
     public static final String DOWNLOAD_TOKEN_PARAM = "token";
 
     private final TokenService tokenService;
-    private final FileService fileService;;
+    private final FileStorage storage;
 
     private final TokenMapper mapper;
 
@@ -57,6 +58,6 @@ public class TokenController {
                 )
                 .contentType(MediaType.parseMediaType(meta.getContentType()))
                 .contentLength(meta.getFileSize())
-                .body(new FileSystemResource(fileService.resolve(meta)));
+                .body(new FileSystemResource(storage.resolve(meta)));
     }
 }

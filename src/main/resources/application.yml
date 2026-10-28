@@ -2,6 +2,9 @@ server:
   shutdown: graceful
   servlet:
     context-path: /api/v1/teletronics
+  tomcat:
+    connection-timeout: 5m
+    max-swallow-size: -1
 
 spring:
   application:
@@ -11,6 +14,8 @@ spring:
     default: release
   servlet:
     multipart:
+      location: ${file.storage.location}/.tmp
+      file-size-threshold: 0
       enabled: true
       max-file-size: -1
       max-request-size: -1
@@ -21,7 +26,7 @@ spring:
 
 file:
   storage:
-    location: ./uploads
+    location: ${user.dir}/uploads
   token-download:
     secret: ${DOWNLOAD_TOKEN_SECRET}
     ttl: PT15M
