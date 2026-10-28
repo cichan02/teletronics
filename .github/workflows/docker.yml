@@ -25,15 +25,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Get Maven project version
+        id: project-version
+        run: |
+          VERSION=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/teletronics
           tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=raw,value=${{ steps.project-version.outputs.version }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
